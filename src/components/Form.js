@@ -1,7 +1,7 @@
-import React, { useRef, useState } from 'react'
+import React, { useState } from 'react'
 import axios from 'axios'
 import { useEffect } from 'react'
-import Details from './Details'
+import Details from '../components/Details'
 
 const Form = () => {
 
@@ -9,8 +9,12 @@ const Form = () => {
     const [movies, setMovies] = useState([])
     const [active, setActive] = useState(false)
     const [clickedMovie, setClickedMovie] = useState('')
+    const [searchMovie, setSearchMovie] = useState('')
 
-    // console.log(movies)
+    // console.log(searchMovie)
+
+    const filteredMovies = searchMovie.length === 0 ? movies : movies.filter((movie) => movie.title.toLowerCase().includes(searchMovie.toLocaleLowerCase()))
+    // console.log(filteredMovies)
 
     const submitHandler = (e) => {
         e.preventDefault()
@@ -52,6 +56,10 @@ const Form = () => {
         })
     }
 
+    const deleteHandler = (movie) => {
+        setMovies(movies.filter((e) => e !== movie))
+    }
+
     useEffect(() => {
         getMovies();
     }, [])
@@ -65,25 +73,34 @@ const Form = () => {
                     onChange={(e) => setName(e.target.value)} />
                 <button>Submit</button>
             </form>
+            <input
+                type="text"
+                placeholder="Search" onChange={(e) => setSearchMovie(e.target.value)} />
             <h2>Results</h2>
             <div className="grid-body">
-                {movies.map((movie, key) => (
-                    <div key={key}>
-                        <div className="card"  >
-                            <h3>{movie.title}</h3>
-                            <button
-                                className="show-more"
-                                onClick={toggleShowMore}>Show More</button>
+                {filteredMovies.length === 0 ?
+                    <div className="no-movies">No Movies Found</div> :
+                    filteredMovies.map((movie, key) => (
+                        <div key={key}>
+                            <div className="card" key={key} >
+                                <h3>{movie.title}</h3>
+                                <button className="deleteBtn" onClick={() => deleteHandler(movie)}>Delete</button>
+                                <button
+                                    className="show-more"
+                                    onClick={toggleShowMore}>Show More</button>
+                            </div>
+
+                            {active && (movie.title === clickedMovie)
+                                ? <Details
+                                    date={movie.release_date}
+                                    popularity={movie.popularity}
+                                    adult={movie.adult}
+                                />
+                                : <></>}
+
                         </div>
-                        {active && (movie.title === clickedMovie)
-                            ? <Details
-                                date={movie.release_date}
-                                popularity={movie.popularity}
-                                adult={movie.adult}
-                            />
-                            : <></>}
-                    </div>
-                ))}
+                    ))
+                }
             </div>
         </>
     )
